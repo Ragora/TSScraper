@@ -1,0 +1,15 @@
+<HTML>
+    <HEAD>
+        <TITLE>TS Scraper | {{ file }}</TITLE>
+    </HEAD>
+    
+    <BODY>
+        <CENTER>
+            Globals: </br>
+            
+            {% for global in globals %}
+                {{ global.name }}</br>
+            {% endfor %}
+        </CENTER>
+    </BODY>
+</HTML>
