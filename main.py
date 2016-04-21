@@ -18,32 +18,32 @@ class Application(object):
     thread_count = 8
 
     threads = None
-    
+
     target_directory = None
     target_exporter = None
-    
+
     def print_usage(self):
-        print("Usage: '%s <exporter> <target directories...>'" % sys.argv[0])
+        print("Usage: '%s <exporter> <output directory> <target directories...>'" % sys.argv[0])
         print("Or: '%s exporters' for a list of known exporters." % sys.argv[0])
-    
+
     def get_available_exporters(self):
         exporters = { }
-        
+
         for root, dirs, files in os.walk("exporters"):
             for filename in files:
                 module_name, extension = os.path.splitext(filename)
-               
+
                 if (module_name == "__init__"):
                     continue
-                
+
                 try:
                     module = importlib.import_module('exporters.%s' % (module_name))
                     exporters[module_name] = module
                 except ImportError as e:
                     print(e)
-                    
+
         return exporters
-    
+
     def main(self):
         """
             The main entry point of the application. This is equivalent to
@@ -52,22 +52,22 @@ class Application(object):
         if (len(sys.argv) < 2):
            self.print_usage()
            return
-        
+
         exporters = self.get_available_exporters()
-        
+
         if (sys.argv[1] == "exporters"):
             print("Available Exporters: ")
-            
-            for exporter in exporters.keys():
+
+            for exporter in exporters:
                 print("\t- %s" % exporter)
-                return
             print("\t- None")
-            
-        elif(len(sys.argv) < 3):
+            return
+        elif(len(sys.argv) < 4):
             self.print_usage()
             return
-        
-        self.target_directory = sys.argv[2:]
+
+        self.target_directory = sys.argv[3]
+        self.output_directory = sys.argv[2]
         self.target_exporter = sys.argv[1]
         self.run()
 
@@ -85,11 +85,13 @@ class Application(object):
         scraper = tsscraper.TSScraper(self.target_directory, self.thread_count)
         results = scraper.process()
 
-        
-        # Init the DokuOutput
-       # if (exporter is not None):
-       #     output = exporter.Exporter(results)
-       #     output.write()
-     
+        # Init the exporter
+        if (exporter is not None):
+            # Ensure that the output directory at least exists
+            os.mkdir(self.output_directory)
+
+            output = exporter.Exporter(results, self.target_directory)
+            output.write(self.output_directory)
+
 if __name__ == "__main__":
     print("Operation Completion-----------------------\n%f Seconds" % timeit.timeit("Application().main()", number=1, setup="from __main__ import Application"))
