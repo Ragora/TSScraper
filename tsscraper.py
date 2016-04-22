@@ -200,7 +200,7 @@ class TSScraper(object):
     _target_directories = None
     _dependencies = None
 
-    _combined_pattern = re.compile("(?<!.)\s*function\s+(([A-z]|_))+(::([A-z]|_)+)*\(\s*(%[A-z]+(\s*,\s*%[A-z]+)*)*\s*\)|((?<!.)\s*datablock\s+[A-z]+\s*\(\s*\S+\s*\)\s*(:\s*[A-z]+)?\s*(//.*)?\s*\{(\s|\S)*?\s*(?<!.)\};)")
+    _combined_pattern = re.compile("(?<!.)\s*function\s+(([A-z]|_))+(::([A-z]|_)+)*\(\s*(%[A-z]+(\s*,\s*%[A-z]+)*)*\s*\)|((?<!.)\s*datablock\s+[A-z]+\s*\(\s*\S+\s*\)\s*(:\s*[A-z]+)?\s*(//.*)?\s*\{(\s|\S)*?\s*(?<!.)\s*\};)")
 
     bound_function_pattern = re.compile("(?<!.)\s*function\s+(([A-z]|_)+::)([A-z]|_)+\(\s*(%[A-z]+(\s*,\s*%[A-z]+)*)*\s*\)")
     function_pattern = re.compile("(?<!.)\s*function\s+([A-z]|_)+\(\s*(%[A-z]+(\w*,\s*%[A-z]+)*)*\s*\)")
@@ -664,7 +664,7 @@ class TSScraper(object):
                 if (datablock.derived is not None):
                     for parent in datablock.derived:
                         if (parent.lower() not in datablock_list.keys()):
-                            print("Warning: Datablock '%s' derives from non-existent parent '%s'! (Declaration in %s, line %u)" % (datablock.name, datablock.derived, datablock.filepath, datablock.line))
+                            print("Warning: Datablock '%s' derives from non-existent parent '%s'! (Declaration in %s, line %u)" % (datablock.name, parent, datablock.filepath, datablock.line))
                             datablock.derived.remove(parent)
                 elif (datablock.derived is not None):
                     datablock.derived = datablock_list[datablock.derived]
