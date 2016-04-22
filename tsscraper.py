@@ -638,6 +638,7 @@ class TSScraper(object):
 
         # For each file entry
         known_datablocks = { }
+
         for file in parse_results:
             # For each global function
             for global_function in file.global_functions:
@@ -690,20 +691,15 @@ class TSScraper(object):
                 known_datablocks.setdefault(datablock.name, [])
                 known_datablocks[datablock.name].append(datablock)
 
-                # Check for declarations
-                if (processed_entries[datablock.name] is not datablock):
-                    known_entry = processed_entries[datablock.name]
 
-                    # Redeclaration with different parent
-                    if (known_entry.derived != datablock.derived):
-                        known_entry.aliases.append(datablock)
-                        datablock.aliases.append(known_entry)
-                        print("Warning: Datablock '%s' redeclared in %s, line %u with parent '%s'! (Original declaration in %s, line %u with parent '%s')" % (datablock.name, datablock.filepath, datablock.line, datablock.derived, known_entry.filepath, known_entry.line, known_entry.derived))
-                    # Regular Redeclaration
-                    else:
-                        known_entry.aliases.append(datablock)
-                        datablock.aliases.append(known_entry)
-                        print("Warning: Datablock '%s' redeclared in %s, line %u! (Original declaration in %s, line %u" % (datablock.name, datablock.filepath, datablock.line, known_entry.filepath, known_entry.line))
+        # Check for datablock declarations
+        for datablock in known_datablocks:
+            occurrence_count = len(known_datablocks[datablock])
+            if (occurrence_count != 1):
+                print("Warning: Datablock '%s' redeclared %u times!" % (datablock, occurrence_count))
+
+                for occurrence in known_datablocks[datablock]:
+                    print("   In %s:%u" % (occurrence.filepath, occurrence.line))
 
         return known_datablocks
 
