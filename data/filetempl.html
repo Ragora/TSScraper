@@ -1,15 +1,127 @@
 <HTML>
     <HEAD>
-        <TITLE>TS Scraper | {{ file }}</TITLE>
+        <TITLE>TS Scraper | {{ file.mod_path }}</TITLE>
+        <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
     </HEAD>
-    
+
     <BODY>
         <CENTER>
-            Globals: </br>
-            
-            {% for global in globals %}
-                {{ global.name }}</br>
+            <FONT SIZE="12">
+                {{ file.mod_path }}
+            </FONT>
+            <HR></br>
+
+            {% if file.datablocks.__len__() != 0 %}
+            <FONT SIZE="6"><U>Datablocks</U></FONT></br></br>
+            {% endif %}
+
+            <!-- Datablocks -->
+            {% for datablock in file.datablocks %}
+                <div class="panel-group">
+                  <div class="panel panel-default">
+                    <div class="panel-heading">
+                      <h4 class="panel-title">
+                        <a data-toggle="collapse" href="#{{ datablock.name }}">{{ datablock.name }}</a>
+                      </h4>
+                    </div>
+                    <div id="{{ datablock.name }}" class="panel-collapse collapse">
+                      <div class="panel-body">
+                          <TABLE class="table table-bordered">
+                              <!-- Headers -->
+                              <TR>
+                                  <TH>Property Name</TH>
+                                  <TH>Property Value</TH>
+                              </TR>
+                              <!-- Properties -->
+                              {% for property in datablock.properties %}
+                              <TR>
+                                  <TD>{{ property }}</TD>
+                                  <TD>{{ datablock.properties[property] }}</TD>
+                              </TR>
+                              {% endfor %}
+                          </TABLE></BR>
+                      </div>
+                      <div class="panel-footer">{{ file.mod_path }}:{{ datablock.line }}</div>
+                    </div>
+                  </div>
+                </div>
             {% endfor %}
+
+            <!-- Global Functions -->
+            {% if file.global_functions.__len__() != 0 %}
+            <FONT SIZE="6"><U>Global Functions</U></FONT></br></br>
+            {% endif %}
+
+            {% for function in file.global_functions %}
+                <div class="panel-group">
+                  <div class="panel panel-default">
+                    <div class="panel-heading">
+                      <h4 class="panel-title">
+                        <a data-toggle="collapse" href="#{{ function.name }}">{{ function.name }}</a>
+                      </h4>
+                    </div>
+                    <div id="{{ function.name }}" class="panel-collapse collapse">
+                      <div class="panel-body">
+                          <TABLE class="table table-bordered">
+                            <TR>
+                                <TH>Parameter Name</TH>
+                            </TR>
+
+                            {% for parameter in function.parameters %}
+                                <TR>
+                                    <TD>
+                                        {{ parameter }}
+                                    </TD>
+                                </TR>
+                            {% endfor %}
+
+                          </TABLE></BR>
+                     </div>
+                     <div class="panel-footer">{{ file.mod_path }}:{{ function.line }}</div>
+                   </div>
+                 </div>
+               </div>
+            {% endfor %}
+
+            <!-- Bound Functions -->
+            {% if file.bound_functions.__len__() != 0 %}
+            <FONT SIZE="6"><U>Bound Functions</U></FONT></br></br>
+            {% endif %}
+
+            {% for class in file.bound_functions %}
+                <div class="panel-group">
+                  <div class="panel panel-default">
+                    <div class="panel-heading">
+                      <h4 class="panel-title">
+                        <a data-toggle="collapse" href="#{{ class }}-functions">{{ class }}</a>
+                      </h4>
+                    </div>
+                    <div id="{{ class }}-functions" class="panel-collapse collapse">
+                      <div class="panel-body">
+                        <TABLE class="table table-bordered">
+                            <TH>Function Name</TH>
+                            <TH>Parameter Count</TH>
+
+                        {% for function in file.bound_functions[class] %}
+                                <TR>
+                                    <TD>{{ function.name }}</TD>
+                                    <TD>{{ function.parameters.__len__() }}
+                                </TR>
+
+
+                         {% endfor %}
+                        </TABLE></BR>
+                     </div>
+                     <div class="panel-footer">{{ file.mod_path }}</div>
+                   </div>
+                 </div>
+               </div>
+             {% endfor %}
+            </br>
+            This file was auto-generated by TS Scraper.</br>
+            TS Scraper is written in Python 2.7 by Robert MacGregor.
         </CENTER>
     </BODY>
 </HTML>

@@ -3,6 +3,7 @@ import os
 import sys
 import importlib
 import os.path
+import shutil
 
 class Exporter(object):
     data = None
@@ -18,7 +19,6 @@ class Exporter(object):
 
             try:
                 if (os.path.isdir(mirrored_path)):
-                    print(relative_path)
                     os.mkdir(relative_path)
             except OSError:
                 pass
@@ -50,7 +50,7 @@ class Exporter(object):
             # FIXME: Dirty hack to make sure the os.path.join works
             html_filename = file.path.replace(self.target_directory + "/", "")
             script_relative = html_filename
-
+            file.mod_path = html_filename
             script_relative_paths.append(script_relative)
 
             # Next, we ensure that the subdirectories exist
@@ -58,15 +58,22 @@ class Exporter(object):
             html_filename, oldextension = os.path.splitext(html_filename)
             html_filename = "%s.html" % html_filename
             html_filenames.append(html_filename)
+            file.web_path = html_filename
 
             with open(os.path.join(directory, html_filename), "w") as handle:
                 template = jinja2.Template(file_template)
-                handle.write(template.render(file=file.path, globals=file.global_functions))
+                handle.write(template.render(file=file))
 
         # Dump the index file
         with open(os.path.join(directory, "index.html"), "w") as handle:
             template = jinja2.Template(index_template)
 
-            handle.write(template.render(files=script_relative_paths))
+            handle.write(template.render(files=self.data["files"]))
+
+        # Puke bootstrap into the directory
+        try:
+            shutil.copytree("data/bootstrap", os.path.join(directory, "bootstrap"))
+        except OSError:
+            pass
 
         print("Done processing.")

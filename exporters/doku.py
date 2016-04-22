@@ -10,8 +10,7 @@ class Exporter(object):
     def __init__(self, data):
         self.data = data
 
-    def write(self, directory):
-        
+    def write(self, directory):        
         with open("Out.txt", "w") as handle:
             # Write the header
             handle.write("====== Test ======\n\n")

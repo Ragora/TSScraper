@@ -101,8 +101,11 @@ def scrape_file(input):
     parameter_split = re.compile("\s*,\s*")
     assignment_split = re.compile("\s*=\s*")
 
+    comment_pattern = re.compile("//.*")
+
     with open(filepath, "r") as handle:
-        result = FileEntry(filepath)
+        file = FileEntry(filepath)
+
         file_data = handle.read()
 
         # Parse for all sequences now
@@ -129,8 +132,8 @@ def scrape_file(input):
 
                     parameters.append(parameter.lstrip().rstrip())
 
-                    result.bound_functions.setdefault(type, [])
-                    result.bound_functions[type].append(Function(name, type, parameters, filepath, line))
+                    file.bound_functions.setdefault(type, [])
+                    file.bound_functions[type].append(Function(name, type, parameters, filepath, line))
                 else:
                     match_split = match.group(0).strip()[9:].split("(")
                     name = match_split[0].lower()
@@ -142,7 +145,8 @@ def scrape_file(input):
                         if (parameter == ""):
                             continue
 
-                        parameters.append(parameter.strip())
+                    parameters.append(parameter.strip())
+                    file.global_functions.append(Function(name, None, parameters, filepath, line))
             else:
                 line = file_data[0:match.start()].count("\n") + 1
                 match_text = match.group(0).lstrip().rstrip()
@@ -151,11 +155,15 @@ def scrape_file(input):
                 type = header[10:header.find("(")].strip().lower()
                 name = header[header.find("(") + 1:header.find(")")].strip().lower()
 
+                # Rip off commenting that we sometimes get in our lines
+                header = re.sub(comment_pattern, "", header).rstrip()
+
                 # Inherited?
                 inherited = None
                 inheritor = header.find(":")
+
                 if (inheritor != -1):
-                    inherited = header[inheritor + 1:].strip().lower()
+                    inherited = [header[inheritor + 1:].strip().lower()]
 
                 # Blow through key, values
                 properties = { }
@@ -178,14 +186,14 @@ def scrape_file(input):
                         try:
                             value = float(value)
                         except ValueError as e:
-                    # If this was raised, treat it as a string
+                            # If this was raised, treat it as a string
                             pass
 
                     properties[key] = value
 
-                result.datablocks.append(Datablock(name, type, properties, filepath, line, inherited))
+                file.datablocks.append(Datablock(name, type, properties, filepath, line, inherited))
 
-        return result
+        return (file.global_functions, file.bound_functions, file.datablocks, file)
 
 class TSScraper(object):
     _process_count = None
@@ -235,7 +243,7 @@ class TSScraper(object):
         "itemdata": {
             "references": [ ],
             "declared": [ ],
-            "checks": { "pickupradius": (lambda x: x > 0, "Items should have >= 1 pickup radius.")
+            "checks": { "pickupradius": (lambda x: x >= 1, "Items should have >= 1 pickup radius.")
             }
         },
 
@@ -259,7 +267,7 @@ class TSScraper(object):
 
         "hovervehicledata": {
             "references": [ ],
-            "declared": [ ],
+            "declared": [ "catagory" ],
             "checks": { },
         },
 
@@ -283,7 +291,7 @@ class TSScraper(object):
 
         "wheeledvehicledata": {
             "references": [ ],
-            "declared": [ ],
+            "declared": [ "catagory" ],
             "checks": { },
         },
 
@@ -303,6 +311,12 @@ class TSScraper(object):
             "references": [ ],
             "declared": [ ],
             "checks": { },
+        },
+
+        "runninglightdata": {
+            "references": [ ],
+            "declared": [ ],
+            "checks": { "radius": (lambda x: x >= 1, "Lights should have a radius of >= 1.") },
         },
 
         "staticshapedata": {
@@ -374,7 +388,7 @@ class TSScraper(object):
         "playerdata": {
             "references": [ ],
             "declared": [ ],
-            "checks": { },
+            "checks": { "shapefile": (lambda x: x is not None and x != "", "Must have a valid shapefile!") },
         },
 
         "turretdata": {
@@ -427,7 +441,7 @@ class TSScraper(object):
 
         "flyingvehicledata": {
             "references": [ ],
-            "declared": [ ],
+            "declared": [ "catagory" ],
             "checks": { },
         },
 
@@ -503,7 +517,6 @@ class TSScraper(object):
           "checks": { },
       },
 
-
       "lightningdata": {
           "references": [ ],
           "declared": [ ],
@@ -517,10 +530,10 @@ class TSScraper(object):
       },
     }
 
-    def __init__(self, target_directories, process_count = 0):
+    def __init__(self, target_directory, process_count = 0, previous_results = None):
         self._process_count = process_count
-        self._target_directories = target_directories
-
+        self._target_directory = target_directory
+        self.previous_results = previous_results
         self._log_lines = [ ]
 
     def get_file_list(self, directory):
@@ -647,8 +660,12 @@ class TSScraper(object):
         for file in parse_results:
             # For each datablock
             for datablock in file.datablocks:
-                if (datablock.derived is not None and datablock.derived.lower() not in datablock_list.keys()):
-                    print("Warning: Datablock '%s' derives from non-existent parent '%s'! (Declaration in %s, line %u)" % (datablock.name, datablock.derived, datablock.filepath, datablock.line))
+                # Process all parents
+                if (datablock.derived is not None):
+                    for parent in datablock.derived:
+                        if (parent.lower() not in datablock_list.keys()):
+                            print("Warning: Datablock '%s' derives from non-existent parent '%s'! (Declaration in %s, line %u)" % (datablock.name, datablock.derived, datablock.filepath, datablock.line))
+                            datablock.derived.remove(parent)
                 elif (datablock.derived is not None):
                     datablock.derived = datablock_list[datablock.derived]
 
@@ -675,7 +692,34 @@ class TSScraper(object):
                     for check in self._datablock_rules[datablock.type]["checks"].keys():
                         # Is it declared?
                         if (check not in datablock.properties):
-                            print("Property Warning: %s Datablock %s '%s' property not declared! (Declaration in %s, line %u)" % (datablock.type, datablock.name, check, datablock.filepath, datablock.line))
+                            # If its not declared explicitly, check the inheritance tree
+                            if (datablock.derived is None):
+                                print("Property Warning: %s Datablock %s '%s' property not declared and there is no parent to inherit from! (Declaration in %s, line %u)" % (datablock.type, datablock.name, check, datablock.filepath, datablock.line))
+                            else:
+                                # Recurse down the hierarchy
+                                def process_parents(current, property):
+                                    if (current.derived is not None):
+                                        for parent in current.derived:
+                                            parent_declarations = datablock_list[parent]
+
+                                            # Check for the property on each parent block
+                                            for parent in parent_declarations:
+                                                if (property in parent.properties):
+                                                    found_property = True
+
+                                                    method, message = self._datablock_rules[datablock.type]["checks"][property]
+                                                    if (not method(parent.properties[property])):
+                                                        print("Inherited Property Warning (Child Datablock '%s', Parent Datablock '%s', type %s. Declaration in %s, line %u): %s" % (current.name, parent.name, current.type, current.filepath, current.line, message))
+                                                    return True
+
+                                                found_property = process_parents(parent, property)
+                                                if (found_property is True):
+                                                    return True
+                                        return False
+
+                                found_property = process_parents(datablock, check)
+                                if (found_property is False):
+                                    print("Inherited Property Warning: %s Datablock %s '%s' property not declared and parent datablocks do not declare it! (Declaration in %s, line %u)" % (datablock.type, datablock.name, check, datablock.filepath, datablock.line))
                         else:
                             method, message = self._datablock_rules[datablock.type]["checks"][check]
                             if (not method(datablock.properties[check])):
@@ -687,12 +731,11 @@ class TSScraper(object):
         # Process each directory sequentially
         target_files = { }
 
-        target_directory = self._target_directories
-        if (os.path.isdir(target_directory) is False):
-            raise IOError("No such directory to recurse (#%u): '%s'" % (index, target_directory))
+        if (os.path.isdir(self._target_directory) is False):
+            raise IOError("No such directory to recurse (#%u): '%s'" % (index, self._target_directory))
 
-        print("INFO: Building file list for directory '%s' ..." % target_directory)
-        current_files = self.get_file_list(target_directory)
+        print("INFO: Building file list for directory '%s' ..." % self._target_directory)
+        current_files = self.get_file_list(self._target_directory)
 
         # Does a previous entry exist in the target file list?
         for current_absolute_path, current_relative_path in current_files:
@@ -706,21 +749,47 @@ class TSScraper(object):
 
         # Perform the initial parse
         print("INFO: Performing parse stage ...")
-        parse_results = self._parse_stage(target_file_list)
+
+        file_list = [ ]
+        global_function_list = [ ]
+        bound_function_list = { }
+        datablock_list = { }
+        for payload in self._parse_stage(target_file_list):
+            global_functions, bound_functions, datablocks, file = payload
+
+            file_list.append(file)
+            global_function_list += global_functions
+
+            # Write out datablocks
+            for datablock in datablocks:
+                datablock_list[datablock.name] = datablock
+
+            for classname in bound_functions:
+                bound_function_list.setdefault(classname, [])
+                bound_function_list[classname] += bound_functions[classname]
 
         # Perform the declaration analysis
         print("INFO: Performing declaration analysis. ...")
-        datablock_list = self._declaration_stage(parse_results)
+        datablock_list = self._declaration_stage(file_list)
+
+        # Combine previous datablock listings with current ones
+        # TODO: Refactor the programming to use a global lookup when performing referential checks
+        if (self.previous_results is not None):
+            for datablock_name in self.previous_results["datablocks"]:
+                # Don't overwrite current datablock listings with base ones
+                if (datablock_name not in datablock_list):
+                    datablock_list[datablock_name] = self.previous_results["datablocks"][datablock_name]
 
         # Perform DB inheritance analysis
         print("INFO: Performing datablock inheritance analysis ...")
-        self._inheritance_stage(parse_results, datablock_list)
+        self._inheritance_stage(file_list, datablock_list)
 
         # Perform DB reference analysis
         print("INFO: Performing datablock reference analysis ...")
-        self._reference_stage(parse_results, datablock_list)
+        self._reference_stage(file_list, datablock_list)
 
         # We're done, return the results
         print("INFO: Done.")
 
-        return { "files": parse_results, "datablocks": datablock_list }
+        return { "files": file_list, "datablocks": datablock_list, "bound_functions": bound_function_list,
+        "global_functions": global_function_list }

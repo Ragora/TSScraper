@@ -4,6 +4,7 @@
 
 import re
 import os
+import os.path
 import sys
 import multiprocessing
 import importlib
@@ -82,13 +83,27 @@ class Application(object):
                 self.print_usage()
                 return
 
-        scraper = tsscraper.TSScraper(self.target_directory, self.thread_count)
+        # First, process base
+        base_results = None
+        if (os.path.isdir("base") is False):
+            print("Warning: No local copy of base found! Some reference checks will report false positives.")
+        else:
+            print("INFO: Processing base ...")
+            base_scraper = tsscraper.TSScraper("base", self.thread_count)
+            base_results = base_scraper.process()
+
+        print("INFO: Processing '%s' ..." % self.target_directory)
+        scraper = tsscraper.TSScraper(self.target_directory, self.thread_count, base_results)
         results = scraper.process()
 
         # Init the exporter
+        print("INFO: Exporting data ...")
         if (exporter is not None):
             # Ensure that the output directory at least exists
-            os.mkdir(self.output_directory)
+            try:
+                os.mkdir(self.output_directory)
+            except OSError:
+                pass
 
             output = exporter.Exporter(results, self.target_directory)
             output.write(self.output_directory)
