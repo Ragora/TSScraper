@@ -93,7 +93,7 @@ def scrape_file(input):
     """
     filepath, parameter_split, combined_pattern = input
 
-    key_value_pattern = re.compile("(?<!.)\s*[A-z]+\s*=\s*(\S+);")
+    key_value_pattern = re.compile("(?<!.)\s*[A-z]+\s*=.+;")
 
     global_usages = re.compile("\{.*\$[A-z]+(::([A-z]+))*?.*\}")
     global_pattern = re.compile("(?<!.)\s*$[A-z]+(::([A-z]+))*?")
@@ -788,7 +788,7 @@ class TSScraper(object):
                             parent_datablock = datablock_list[parent][0]
 
                             # Is it declared?
-                            if (check not in parent_datablock.properties):
+                            if (check not in parent_datablock.properties.keys()):
                                 continue
 
                             found_check = True
