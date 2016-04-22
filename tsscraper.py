@@ -226,8 +226,8 @@ class TSScraper(object):
     # Rules for verifying datablock information
     _datablock_rules = {
         "tracerprojectiledata": {
-            "references": ["splash", "explosion", "sound"],
-            "optional_references": [ ],
+            "references": [ ],
+            "optional_references": [ "projectile", "item", "sound", "splash", "explosion" ],
             "declared": [ ],
             "checks": {
                 "fizzletimems": (lambda x: x >= 0, "Cannot use negative fizzle time!")
@@ -237,14 +237,14 @@ class TSScraper(object):
         "shapebaseimagedata": {
             "references": [ ],
             "optional_references": [ ],
-            "declared": [ ],
+            "declared": [ "shapefile" ],
             "checks": {
             }
         },
 
         "itemdata": {
             "references": [ ],
-            "optional_references": [ ],
+            "optional_references": [ "image" ],
             "declared": [ ],
             "checks": { "pickupradius": (lambda x: x >= 1, "Items should have >= 1 pickup radius.")
             }
@@ -745,22 +745,23 @@ class TSScraper(object):
                     process_parents(datablock, parent_classes)
 
                     # Flip through each reference in the table
-                    for reference in self._datablock_rules[datablock.type]["references"]:
+                    references = self._datablock_rules[datablock.type]["references"] + self._datablock_rules[datablock.type]["optional_references"]
+                    for reference in references:
                         found_reference = False
 
                         for parent in parent_classes:
                             # FIXME: Deal with datablock redeclarations?
                             parent_datablock = datablock_list[parent][0]
 
-                            if (reference in datablock.properties):
-                                if (datablock.properties[reference].lower() not in datablock_list.keys()):
+                            if (reference in parent_datablock.properties):
+                                if (parent_datablock.properties[reference].lower() not in datablock_list.keys()):
                                     print("Reference Warning: %s Datablock '%s' references '%s' in property '%s', which does not exist! (Declaration in %s, line %u)" % (datablock.type, datablock.name, datablock.properties[reference], reference, datablock.filepath, datablock.line))
                                     break
                                 else:
                                     found_reference = True
                                     break
 
-                        if (found_reference is False):
+                        if (found_reference is False and reference in self._datablock_rules[datablock.type]["references"]):
                             print("Reference Warning: %s datablock '%s' has no '%s' declaration! (Declaration in %s, line %u)" % (datablock.type, datablock.name, reference, datablock.filepath, datablock.line))
 
                     # Check each declaration
@@ -771,12 +772,12 @@ class TSScraper(object):
                             # FIXME: Deal with datablock redeclarations?
                             parent_datablock = datablock_list[parent][0]
 
-                            if (declaration in datablock.properties):
+                            if (declaration in parent_datablock.properties):
                                 found_declaration = True
                                 break
 
                         if (found_declaration is False):
-                            print("Declaration Warning: %s Datablock '%s' required property '%s' not declared! (Declaration in %s, line %u)" % (datablock.type, datablock.name, declaration, datablock.filepath, datablock.line))
+                            print("Declaration Warning: %s Datablock '%s' required property '%s' not declared or inherited! (Declaration in %s, line %u)" % (datablock.type, datablock.name, declaration, datablock.filepath, datablock.line))
 
                     # Run custom checks
                     for check in self._datablock_rules[datablock.type]["checks"].keys():
@@ -795,7 +796,7 @@ class TSScraper(object):
 
                             if (not method(parent_datablock.properties[check])):
                                 print("Property Warning (Datablock '%s', type %s. Declaration in %s, line %u): %s" % (datablock.name, datablock.type, datablock.filepath, datablock.line, message))
-                                
+
                             break
 
                         if (found_check is False):
