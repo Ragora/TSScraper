@@ -227,6 +227,7 @@ class TSScraper(object):
     _datablock_rules = {
         "tracerprojectiledata": {
             "references": ["splash", "explosion", "sound"],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": {
                 "fizzletimems": (lambda x: x >= 0, "Cannot use negative fizzle time!")
@@ -235,6 +236,7 @@ class TSScraper(object):
 
         "shapebaseimagedata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": {
             }
@@ -242,84 +244,100 @@ class TSScraper(object):
 
         "itemdata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { "pickupradius": (lambda x: x >= 1, "Items should have >= 1 pickup radius.")
             }
         },
 
         "audioprofile": {
-            "references": [ ],
+            "references": [ "description" ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "simdatablock": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "jeteffectdata": {
             "references": [ ],
-            "declared": [ ],
+            "optional_references": [ ],
+            "declared": [ "texture" ],
             "checks": { },
         },
 
         "hovervehicledata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ "catagory" ],
-            "checks": { },
+            "checks": { "dragforce": (lambda x: x >= 0.01, "dragForce must be at least 0.01"),
+                        "vertfactor": (lambda x: x >= 0 and x <= 1.0, "vertFactor must be >= 0 && <= 1.0"),
+                        "floatingthrustfactor": (lambda x: x >= 0 and x <= 1.0, "floatThrustFactor must be >= 0 && <= 1.0") },
         },
 
         "stationfxpersonaldata": {
+            "optional_references": [ ],
             "references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "cameradata": {
+            "optional_references": [ ],
             "references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "triggerdata": {
+            "optional_references": [ ],
             "references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "wheeledvehicledata": {
+            "optional_references": [ ],
             "references": [ ],
             "declared": [ "catagory" ],
             "checks": { },
         },
 
         "tsshapeconstructor": {
+            "optional_references": [ ],
             "references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "bombprojectiledata": {
+            "optional_references": [ ],
             "references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "stationfxvehicledata": {
+            "optional_references": [ ],
             "references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "runninglightdata": {
+            "optional_references": [ ],
             "references": [ ],
             "declared": [ ],
             "checks": { "radius": (lambda x: x >= 1, "Lights should have a radius of >= 1.") },
         },
 
         "staticshapedata": {
+            "optional_references": [ ],
             "references": [ ],
             "declared": [ ],
             "checks": { },
@@ -327,35 +345,41 @@ class TSScraper(object):
 
         "decaldata": {
             "references": [ ],
-            "declared": [ ],
+            "optional_references": [ ],
+            "declared": [ "texturename" ],
             "checks": { },
         },
 
         "repairprojectiledata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "explosiondata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "linearprojectiledata": {
+            "optional_references": [ ],
             "references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "elfprojectiledata": {
+            "optional_references": [ ],
             "references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "linearflareprojectiledata": {
+            "optional_references": [ ],
             "references": [ ],
             "declared": [ ],
             "checks": { },
@@ -363,11 +387,13 @@ class TSScraper(object):
 
         "sensordata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "forcefieldbaredata": {
+            "optional_references": [ ],
             "references": [ ],
             "declared": [ ],
             "checks": { },
@@ -375,42 +401,49 @@ class TSScraper(object):
 
         "particledata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "particleemitterdata": {
-            "references": [ ],
+            "references": [ "particles" ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "playerdata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { "shapefile": (lambda x: x is not None and x != "", "Must have a valid shapefile!") },
         },
 
         "turretdata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "turretimagedata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "shockwavedata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "seekerprojectiledata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
         },
@@ -418,11 +451,13 @@ class TSScraper(object):
         "debrisdata": {
             "references": [ ],
             "declared": [ ],
+            "optional_references": [ ],
             "checks": { },
         },
 
         "grenadeprojectiledata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
         },
@@ -430,17 +465,20 @@ class TSScraper(object):
         "sniperprojectiledata": {
             "references": [ ],
             "declared": [ ],
+            "optional_references": [ ],
             "checks": { },
         },
 
         "sniperprojectiledata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "flyingvehicledata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ "catagory" ],
             "checks": { },
         },
@@ -448,17 +486,20 @@ class TSScraper(object):
         "splashdata": {
             "references": [ ],
             "declared": [ ],
+            "optional_references": [ ],
             "checks": { },
         },
 
         "energyprojectiledata": {
             "references": [ ],
             "declared": [ ],
+            "optional_references": [ ],
             "checks": { },
         },
 
         "flareprojectiledata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
         },
@@ -466,35 +507,41 @@ class TSScraper(object):
         "targetprojectiledata": {
             "references": [ ],
             "declared": [ ],
+            "optional_references": [ ],
             "checks": { },
         },
 
         "shocklanceprojectiledata": {
             "references": [ ],
             "declared": [ ],
+            "optional_references": [ ],
             "checks": { },
         },
 
         "effectprofile": {
             "references": [ ],
             "declared": [ ],
+            "optional_references": [ ],
             "checks": { },
         },
 
         "precipitationdata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
         },
 
         "commandericondata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
        },
 
         "missionmarkerdata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
        },
@@ -502,17 +549,20 @@ class TSScraper(object):
        "particleemissiondummydata": {
             "references": [ ],
             "declared": [ ],
+            "optional_references": [ ],
             "checks": { },
       },
 
       "fireballatmospheredata": {
             "references": [ ],
+            "optional_references": [ ],
             "declared": [ ],
             "checks": { },
       },
 
       "audiodescription": {
           "references": [ ],
+          "optional_references": [ ],
           "declared": [ ],
           "checks": { },
       },
@@ -521,10 +571,12 @@ class TSScraper(object):
           "references": [ ],
           "declared": [ ],
           "checks": { },
+          "optional_references": [ ],
       },
 
       "audioenvironment": {
           "references": [ ],
+          "optional_references": [ ],
           "declared": [ ],
           "checks": { },
       },
@@ -675,55 +727,79 @@ class TSScraper(object):
             # For each datablock
             for datablock in file.datablocks:
                 if (datablock.type in self._datablock_rules):
+                    # We have a bunch of rules to check, so we recurse parent classes where necessary.
+                    parent_classes = [ datablock.name ]
+
+                    # Recurse down the hierarchy
+                    def process_parents(current, result):
+                        if (current.derived is not None):
+                            result += current.derived
+                            for parent in current.derived:
+                                parent_declarations = datablock_list[parent]
+
+                                # Check for the property on each parent block
+                                for parent in parent_declarations:
+                                    process_parents(parent, result)
+                        return result
+
+                    process_parents(datablock, parent_classes)
+
                     # Flip through each reference in the table
                     for reference in self._datablock_rules[datablock.type]["references"]:
-                        if (reference not in datablock.properties):
+                        found_reference = False
+
+                        for parent in parent_classes:
+                            # FIXME: Deal with datablock redeclarations?
+                            parent_datablock = datablock_list[parent][0]
+
+                            if (reference in datablock.properties):
+                                if (datablock.properties[reference].lower() not in datablock_list.keys()):
+                                    print("Reference Warning: %s Datablock '%s' references '%s' in property '%s', which does not exist! (Declaration in %s, line %u)" % (datablock.type, datablock.name, datablock.properties[reference], reference, datablock.filepath, datablock.line))
+                                    break
+                                else:
+                                    found_reference = True
+                                    break
+
+                        if (found_reference is False):
                             print("Reference Warning: %s datablock '%s' has no '%s' declaration! (Declaration in %s, line %u)" % (datablock.type, datablock.name, reference, datablock.filepath, datablock.line))
-                        else:
-                            if (datablock.properties[reference].lower() not in datablock_list.keys()):
-                                print("Reference Warning: %s Datablock '%s' references '%s' in property '%s', which does not exist! (Declaration in %s, line %u)" % (datablock.type, datablock.name, datablock.properties[reference], reference, datablock.filepath, datablock.line))
 
                     # Check each declaration
                     for declaration in self._datablock_rules[datablock.type]["declared"]:
-                        if (declaration not in datablock.properties):
+                        found_declaration = False
+
+                        for parent in parent_classes:
+                            # FIXME: Deal with datablock redeclarations?
+                            parent_datablock = datablock_list[parent][0]
+
+                            if (declaration in datablock.properties):
+                                found_declaration = True
+                                break
+
+                        if (found_declaration is False):
                             print("Declaration Warning: %s Datablock '%s' required property '%s' not declared! (Declaration in %s, line %u)" % (datablock.type, datablock.name, declaration, datablock.filepath, datablock.line))
 
                     # Run custom checks
                     for check in self._datablock_rules[datablock.type]["checks"].keys():
-                        # Is it declared?
-                        if (check not in datablock.properties):
-                            # If its not declared explicitly, check the inheritance tree
-                            if (datablock.derived is None):
-                                print("Property Warning: %s Datablock %s '%s' property not declared and there is no parent to inherit from! (Declaration in %s, line %u)" % (datablock.type, datablock.name, check, datablock.filepath, datablock.line))
-                            else:
-                                # Recurse down the hierarchy
-                                def process_parents(current, property):
-                                    if (current.derived is not None):
-                                        for parent in current.derived:
-                                            parent_declarations = datablock_list[parent]
+                        found_check = False
 
-                                            # Check for the property on each parent block
-                                            for parent in parent_declarations:
-                                                if (property in parent.properties):
-                                                    found_property = True
+                        for parent in parent_classes:
+                            # FIXME: Deal with datablock redeclarations?
+                            parent_datablock = datablock_list[parent][0]
 
-                                                    method, message = self._datablock_rules[datablock.type]["checks"][property]
-                                                    if (not method(parent.properties[property])):
-                                                        print("Inherited Property Warning (Child Datablock '%s', Parent Datablock '%s', type %s. Declaration in %s, line %u): %s" % (current.name, parent.name, current.type, current.filepath, current.line, message))
-                                                    return True
+                            # Is it declared?
+                            if (check not in parent_datablock.properties):
+                                continue
 
-                                                found_property = process_parents(parent, property)
-                                                if (found_property is True):
-                                                    return True
-                                        return False
+                            found_check = True
+                            method, message = self._datablock_rules[parent_datablock.type]["checks"][check]
 
-                                found_property = process_parents(datablock, check)
-                                if (found_property is False):
-                                    print("Inherited Property Warning: %s Datablock %s '%s' property not declared and parent datablocks do not declare it! (Declaration in %s, line %u)" % (datablock.type, datablock.name, check, datablock.filepath, datablock.line))
-                        else:
-                            method, message = self._datablock_rules[datablock.type]["checks"][check]
-                            if (not method(datablock.properties[check])):
+                            if (not method(parent_datablock.properties[check])):
                                 print("Property Warning (Datablock '%s', type %s. Declaration in %s, line %u): %s" % (datablock.name, datablock.type, datablock.filepath, datablock.line, message))
+                                
+                            break
+
+                        if (found_check is False):
+                            print("Inherited Property Warning: %s Datablock %s '%s' property not declared and parent datablocks do not declare it! (Declaration in %s, line %u)" % (datablock.type, datablock.name, check, datablock.filepath, datablock.line))
                 else:
                     print("Program Error: Unknown datablock type '%s'! This means the software does not know how to check this datablock. (Declaration in %s, line %u)" % (datablock.type, datablock.filepath, datablock.line))
 
