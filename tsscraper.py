@@ -800,6 +800,39 @@ class TSScraper(object):
                 else:
                     print("Program Error: Unknown datablock type '%s'! This means the software does not know how to check this datablock. (Declaration in %s, line %u)" % (datablock.type, datablock.filepath, datablock.line))
 
+        # Datablock referential analysis
+        print("INFO: Performing datablock referential analysis ...")
+
+        # There are only a handful of proper standalone types:
+        standalone_types = [ "particledata" ]
+        for current_datablock_name in datablock_list:
+            current_datablock = datablock_list[current_datablock_name][0]
+
+            # Not a reference-only type
+            if (current_datablock.type not in standalone_types):
+                continue
+
+            found_reference = False
+            for checked_datablock_name in datablock_list:
+                if (checked_datablock_name == current_datablock_name):
+                    continue
+
+                checked_datablock = datablock_list[checked_datablock_name][0]
+
+                # Check if any of the property values equals our current datablock name
+                for property_name in checked_datablock.properties:
+                    property_value = checked_datablock.properties[property_name]
+
+                    if (type(property_value) is str and property_value.lower() == current_datablock_name):
+                        found_reference = True
+                        break
+
+                if (found_reference is True):
+                    break
+
+            if (found_reference is False):
+                print("Datablock Referential Warning: %s Datablock %s does not appear to be referenced by any other datablock! (Declaration in %s, line %u)" % (current_datablock.type, current_datablock.name, current_datablock.filepath, current_datablock.line))
+
     def process(self):
         # Process each directory sequentially
         target_files = { }
