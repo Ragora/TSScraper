@@ -93,7 +93,7 @@ def scrape_file(input):
     """
     filepath, parameter_split, combined_pattern = input
 
-    key_value_pattern = re.compile("(?<!.)\s*[A-z]+\s*=.+;")
+    key_value_pattern = re.compile("(?<!.)\s*.+\s*=((\s*\S+\s*)|(\"\s*\S+\s*\"));")
 
     global_usages = re.compile("\{.*\$[A-z]+(::([A-z]+))*?.*\}")
     global_pattern = re.compile("(?<!.)\s*$[A-z]+(::([A-z]+))*?")
@@ -169,6 +169,11 @@ def scrape_file(input):
                 properties = { }
                 for property_match in re.finditer(key_value_pattern, match_text):
                     property_text = property_match.group(0)
+
+                    # Rip out comments and make sure it still matches
+                    property_text = re.sub(comment_pattern, "", property_text)
+                    if (re.match(key_value_pattern, property_text) is None):
+                        continue
 
                     key, value = re.split(assignment_split, property_text, 1)
                     key = key.lstrip().lower()
@@ -804,7 +809,7 @@ class TSScraper(object):
         print("INFO: Performing datablock referential analysis ...")
 
         # There are only a handful of proper standalone types:
-        standalone_types = [ "particledata" ]
+        standalone_types = [ "particledata", "audiodescription", "splashdata", "debrisdata", "sensordata", "decaldata" ] # audioprofile
         for current_datablock_name in datablock_list:
             current_datablock = datablock_list[current_datablock_name][0]
 
