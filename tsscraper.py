@@ -716,7 +716,7 @@ class TSScraper(object):
                 # Process all parents
                 if (datablock.derived is not None):
                     for parent in datablock.derived:
-                        if (parent.lower() not in datablock_list.keys()):
+                        if (parent.lower() not in datablock_list):
                             print("Warning: Datablock '%s' derives from non-existent parent '%s'! (Declaration in %s, line %u)" % (datablock.name, parent, datablock.filepath, datablock.line))
                             datablock.derived.remove(parent)
                 elif (datablock.derived is not None):
@@ -755,7 +755,7 @@ class TSScraper(object):
                             parent_datablock = datablock_list[parent][0]
 
                             if (reference in parent_datablock.properties):
-                                if (parent_datablock.properties[reference].lower() not in datablock_list.keys()):
+                                if (parent_datablock.properties[reference].lower() not in datablock_list):
                                     print("Reference Warning: %s Datablock '%s' references '%s' in property '%s', which does not exist! (Declaration in %s, line %u)" % (datablock.type, datablock.name, datablock.properties[reference], reference, datablock.filepath, datablock.line))
                                     break
                                 else:
